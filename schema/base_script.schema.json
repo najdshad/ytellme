@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://content-factory.local/base_script.schema.json",
+  "title": "Base script",
+  "description": "The single source of truth for everything downstream. One segment = one frame + one narration chunk.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "title", "style_prompt", "width", "height", "segments"],
+  "properties": {
+    "schema_version": {
+      "description": "Bumped only on breaking changes. Consumers reject anything they do not know.",
+      "type": "string",
+      "enum": ["1.0"]
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "style_prompt": {
+      "description": "Prepended VERBATIM to every image prompt. This block is the entire consistency mechanism in v1 - keep it byte-identical across every generation.",
+      "type": "string",
+      "minLength": 20
+    },
+    "negative_prompt": {
+      "description": "Also prepended verbatim (as the negative side) to every image prompt. Mechanically enforced by the derive step.",
+      "type": "string"
+    },
+    "width": { "type": "integer", "minimum": 16 },
+    "height": { "type": "integer", "minimum": 16 },
+    "segments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["segment_id", "narration", "scene_intent", "duration_hint_s", "transition"],
+        "properties": {
+          "segment_id": { "type": "string", "pattern": "^s[0-9]{2,}$" },
+          "narration": {
+            "description": "Exactly what the TTS speaks. Written for the ear.",
+            "type": "string",
+            "minLength": 1
+          },
+          "scene_intent": {
+            "description": "The visual meaning of the frame, written for a human. Not the image prompt; that is derived.",
+            "type": "string",
+            "minLength": 1
+          },
+          "duration_hint_s": {
+            "description": "Advisory pacing intent only. The assembler ignores it; audio is the master clock.",
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 60
+          },
+          "transition": { "type": "string", "enum": ["cut", "hold", "fade"] },
+          "on_screen_text": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}
